@@ -9,9 +9,14 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Vector3 playerVelocity;
     private bool groundedPlayer;
+    private Transform cameraMain;
+    private Transform child;
 
     [SerializeField]
     private float playerSpeed = 2.0f;
+
+    [SerializeField]
+    private float rotationSpeed = 4.0f;
 
     [SerializeField]
     private float jumpHeight = 1.0f;
@@ -37,7 +42,8 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-
+        cameraMain = Camera.main.transform;
+        child = transform.GetChild(0).transform;
     }
 
     void Update()
@@ -49,13 +55,14 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector2 movementInput = playerInput.PlayerMain.Move.ReadValue<Vector2>();
-        Vector3 move = new Vector3(movementInput.x, 0f, movementInput.y);
+        Vector3 move = (cameraMain.forward * movementInput.y + cameraMain.right * movementInput.x);
+        move.y = 0f;
         controller.Move(move * Time.deltaTime * playerSpeed);
 
-        if (move != Vector3.zero)
-        {
-            gameObject.transform.forward = move;
-        }
+        //if (move != Vector3.zero)
+        //{
+        //    gameObject.transform.forward = move;
+        //}
 
         // Changes the height position of the player..
         //if (Input.GetButtonDown("Jump") && groundedPlayer)
@@ -65,5 +72,11 @@ public class PlayerController : MonoBehaviour
 
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
+
+        if (movementInput != Vector2.zero)
+        {
+            Quaternion rotaion = Quaternion.Euler(new Vector3(child.localEulerAngles.x, cameraMain.localEulerAngles.y, child.localEulerAngles.z));
+            child.rotation = Quaternion.Lerp(child.rotation, rotaion, Time.deltaTime * rotationSpeed);
+        }
     }
 }
